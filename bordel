@@ -14,22 +14,23 @@ usage() {
 }
 
 # Start by getting relative location exporting them as script globals
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-REPO_DIR=$(cd $SCRIPT_DIR/..; pwd)
-TOP="${REPO_DIR}"
-CERTS_DIR=${CERTS_DIR:-"${REPO_DIR}/certs"}
+BORDEL_DIR="$( cd "$( dirname "$( realpath ${BASH_SOURCE[0]} )" )" >/dev/null 2>&1 && pwd )"
+TOP=$(cd ${BORDEL_DIR}/..; pwd)
+
+cd ${TOP}
 
 # Source in common functions
-. ${SCRIPT_DIR}/functions
+. ${BORDEL_DIR}/functions
 
 # Source in all the command modules
-register_cmds ${SCRIPT_DIR}/cmds
+register_cmds ${BORDEL_DIR}/cmds
 
 # Parse options.
 while getopts ":i:h" opt; do
     case $opt in
         h)  usage 0 ;;
-        i) BUILD_ID=${OPTARG} ;;
+        i)  BUILD_ID=${OPTARG}
+            ;;
         :)  echo "Option \`${OPTARG}' is missing an argument." >&2
             usage 1
             ;;
@@ -49,17 +50,27 @@ fi
 command="$1"
 shift 1
 
-BUILD_ID=${BUILD_ID:-$(date +"%y%m%d")}
-BUILD_DIR="${TOP}/build-${BUILD_ID}"
+if [ -n "${BUILD_ID}" ]; then
+    BUILD_DIR="build-${BUILD_ID}"
+elif [ -e "${TOP}/build" ]; then
+    BUILD_DIR=$(basename $(readlink -f "${TOP}/build"))
+    BUILD_ID=${BUILD_DIR#*-}
+else
+    BUILD_ID=${BUILD_ID:-$(date +"%y%m%d")}
+    BUILD_DIR="build-${BUILD_ID}"
+fi
 
-if [ -e "${BUILD_DIR}/.putain" ]; then
-    . "${BUILD_DIR}/.putain"
+CONF_DIR="conf"
+DEPLOY_DIR="deploy"
+STAGING_DIR="staging"
+REPO_PACKAGES_DIR="packages.main"
+REPOSITORY_DIR="${STAGING_DIR}/repository/${REPO_PACKAGES_DIR}"
+IMAGES_DIR="${DEPLOY_DIR}/images"
+CERTS_DIR="certs"
+
+if [ -e "${TOP}/${BUILD_DIR}/${CONF_DIR}/openxt.conf" ]; then
+    . "${TOP}/${BUILD_DIR}/${CONF_DIR}/openxt.conf"
     CONFIGURED=true
-
-    # OpenXT configuration.
-    if [ -e "${CONF_DIR}/openxt.conf" ]; then
-        . "${CONF_DIR}/openxt.conf"
-    fi
 else
     CONFIGURED=false
 fi
