@@ -98,6 +98,13 @@ if [ "\$_" == "\$0" ]; then
 fi
 
 BUILD_DIR="\$( cd "\$( dirname "\${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+TOP="\$( cd "\${BUILD_DIRa/..}" >/dev/null 2>&1 && pwd )"
+
+if [ -d "\${TOP}/bin" ]; then
+    BINPATH="\${TOP}/bin:"
+    PATH=\$BINPATH\$(echo "\$PATH" | sed -e "s|:\$BINPATH|:|g" -e "s|^\$BINPATH||")
+    unset BINPATH
+fi
 
 BBPATH="\${BUILD_DIR}/layers/bitbake/bin:"
 
@@ -116,6 +123,12 @@ bb32() {
 cd "\${BUILDDIR}"
 export BB_ENV_EXTRAWHITE LAYERS_DIR BUILDDIR PATH
 EOF
+}
+
+# Usage: config_describe
+# Display description for this command wrapper.
+config_describe() {
+    echo "Creates a build configuration."
 }
 
 config_usage() {
