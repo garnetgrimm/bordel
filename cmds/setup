@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Usage: setup_describe
+# Display description for this command wrapper.
+setup_describe() {
+    echo "Sets up the repo tool directory for Bordel."
+}
+
+setup_describe() {
+    echo "Setup command: no options."
+}
+
+setup_need_conf() { return 1; }
+
+setup_main() {
+    pushd ${TOP} >/dev/null
+    ln -s ${BORDEL_DIR} ${TOP}/bin    
+    popd >/dev/null
+}
